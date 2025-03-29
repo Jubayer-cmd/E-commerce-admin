@@ -2,18 +2,22 @@ import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
-import { Button } from '@/components/custom/button'
+import { Button } from '@/components/ui/button'
 import {
   DotsHorizontalIcon,
   Pencil1Icon,
   TrashIcon,
+  ArchiveIcon,
 } from '@radix-ui/react-icons'
 
-export function TableActions({ row, onEdit, onDelete }) {
+export function TableActions({
+  onEdit,
+  onDelete,
+  onArchiveToggle,
+  isArchived,
+}) {
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
@@ -23,8 +27,6 @@ export function TableActions({ row, onEdit, onDelete }) {
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align='end'>
-        <DropdownMenuLabel>Actions</DropdownMenuLabel>
-        <DropdownMenuSeparator />
         {onEdit && (
           <DropdownMenuItem onClick={onEdit}>
             <Pencil1Icon className='mr-2 h-4 w-4' />
@@ -32,12 +34,15 @@ export function TableActions({ row, onEdit, onDelete }) {
           </DropdownMenuItem>
         )}
         {onDelete && (
-          <DropdownMenuItem
-            onClick={onDelete}
-            className='text-destructive focus:text-destructive'
-          >
+          <DropdownMenuItem onClick={onDelete}>
             <TrashIcon className='mr-2 h-4 w-4' />
             Delete
+          </DropdownMenuItem>
+        )}
+        {onArchiveToggle && (
+          <DropdownMenuItem onClick={onArchiveToggle}>
+            <ArchiveIcon className='mr-2 h-4 w-4' />
+            {isArchived ? 'Unarchive' : 'Archive'}
           </DropdownMenuItem>
         )}
       </DropdownMenuContent>

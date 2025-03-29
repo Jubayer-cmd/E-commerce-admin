@@ -1,7 +1,6 @@
 import { useQuery } from '@tanstack/react-query'
-import useAxiosSecure from './useAxiosSecure'
-import useAxiosPublic from './useAxiosPublic.jsx'
 import { useAuth } from '@/lib/utils'
+import { useAxiosPublic, useAxiosSecure } from './useAxios'
 
 const useFetchData = (qKey, url, dependencies = {}, secure = false) => {
   const { user } = useAuth()

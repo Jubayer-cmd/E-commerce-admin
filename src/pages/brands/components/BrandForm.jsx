@@ -2,17 +2,31 @@ import { useState } from 'react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import { useAxiosSecure } from '@/hooks/apis/useAxios'
 import { toast } from '@/hooks/use-toast'
+import usePostData from '@/hooks/apis/usePostData'
 
-export default function BrandForm({ onCancel }) {
+export default function BrandForm({ onCancel, onSuccess, brand }) {
   const [formData, setFormData] = useState({
-    name: '',
-    logo: '',
-    description: '',
+    name: brand?.name || '',
+    logo: brand?.logo || '',
+    description: brand?.description || '',
   })
-  const [isLoading, setIsLoading] = useState(false)
-  const axiosSecure = useAxiosSecure()
+
+  // Using usePostData hook with success callback
+  const { mutate, isLoading } = usePostData(() => {
+    toast({
+      title: 'Success',
+      description: brand
+        ? 'Brand updated successfully!'
+        : 'Brand created successfully!',
+    })
+    // Call onSuccess if provided, otherwise use onCancel
+    if (onSuccess) {
+      onSuccess()
+    } else {
+      onCancel()
+    }
+  })
 
   const handleChange = (e) => {
     const { name, value } = e.target
@@ -21,19 +35,21 @@ export default function BrandForm({ onCancel }) {
 
   const handleSubmit = async (e) => {
     e.preventDefault()
-    setIsLoading(true)
 
-    try {
-      const response = await axiosSecure.post('/brand/create-brand', formData)
-      if (response.status === 201) {
-        toast.success('Brand created successfully!')
-        onCancel() // Close the form and refresh brands list
-      }
-    } catch (error) {
-      console.error('Error creating brand:', error)
-      toast.error(error.response?.data?.message || 'Failed to create brand')
-    } finally {
-      setIsLoading(false)
+    if (brand?._id) {
+      // Update existing brand
+      mutate({
+        method: 'patch',
+        url: `/brand/${brand._id}`,
+        data: formData,
+      })
+    } else {
+      // Create new brand
+      mutate({
+        method: 'post',
+        url: '/brand/create-brand',
+        data: formData,
+      })
     }
   }
 
@@ -78,7 +94,7 @@ export default function BrandForm({ onCancel }) {
           Cancel
         </Button>
         <Button type='submit' disabled={isLoading}>
-          {isLoading ? 'Saving...' : 'Save Brand'}
+          {isLoading ? 'Saving...' : brand ? 'Update Brand' : 'Save Brand'}
         </Button>
       </div>
     </form>

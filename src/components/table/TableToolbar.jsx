@@ -55,6 +55,9 @@ export function TableToolbar({
 
           if (!tableColumn) return null
 
+          // Check if this is the isActive column for special handling
+          const isActiveColumn = column.id === 'isActive'
+
           return (
             <DropdownMenu key={column.id}>
               <DropdownMenuTrigger asChild>
@@ -67,29 +70,53 @@ export function TableToolbar({
                   {column.title || column.id}
                 </DropdownMenuLabel>
                 <DropdownMenuSeparator />
-                {column.options.map((option) => (
-                  <DropdownMenuCheckboxItem
-                    key={option.value}
-                    checked={tableColumn
-                      .getFilterValue()
-                      ?.includes(option.value)}
-                    onCheckedChange={(checked) => {
-                      const filterValues = tableColumn.getFilterValue() || []
-                      if (checked) {
-                        tableColumn.setFilterValue([
-                          ...filterValues,
-                          option.value,
-                        ])
-                      } else {
-                        tableColumn.setFilterValue(
-                          filterValues.filter((value) => value !== option.value)
-                        )
-                      }
-                    }}
-                  >
-                    {option.label}
-                  </DropdownMenuCheckboxItem>
-                ))}
+                {column.options.map((option) => {
+                  // Get current filter values
+                  const filterValue = tableColumn.getFilterValue() || []
+
+                  // Special handling for isActive boolean values
+                  const isSelected = isActiveColumn
+                    ? filterValue.some(
+                        (val) => String(val) === String(option.value)
+                      )
+                    : filterValue.includes(option.value)
+
+                  return (
+                    <DropdownMenuCheckboxItem
+                      key={String(option.value)}
+                      checked={isSelected}
+                      onCheckedChange={(checked) => {
+                        // Current filter values
+                        const filterValues = tableColumn.getFilterValue() || []
+
+                        // For boolean values, make sure we're using the correct type
+                        const valueToUse =
+                          isActiveColumn && typeof option.value === 'boolean'
+                            ? option.value // Keep as boolean for isActive
+                            : option.value
+
+                        if (checked) {
+                          // Add to filters if not already included
+                          tableColumn.setFilterValue([
+                            ...filterValues.filter(
+                              (val) => String(val) !== String(valueToUse)
+                            ),
+                            valueToUse,
+                          ])
+                        } else {
+                          // Remove from filters
+                          tableColumn.setFilterValue(
+                            filterValues.filter(
+                              (val) => String(val) !== String(valueToUse)
+                            )
+                          )
+                        }
+                      }}
+                    >
+                      {option.label}
+                    </DropdownMenuCheckboxItem>
+                  )
+                })}
               </DropdownMenuContent>
             </DropdownMenu>
           )
@@ -112,8 +139,10 @@ export function TableToolbar({
                   checked={column.getIsVisible()}
                   onCheckedChange={(value) => column.toggleVisibility(value)}
                 >
-                  {column.id.charAt(0).toUpperCase() +
-                    column.id.slice(1).replace(/([A-Z])/g, ' $1')}
+                  {column.id === 'isActive'
+                    ? 'Status'
+                    : column.id.charAt(0).toUpperCase() +
+                      column.id.slice(1).replace(/([A-Z])/g, ' $1')}
                 </DropdownMenuCheckboxItem>
               ))}
           </DropdownMenuContent>
