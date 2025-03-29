@@ -37,6 +37,12 @@ export const sidelinks = [
     icon: <IconChecklist size={18} />,
   },
   {
+    title: 'Banners',
+    label: '',
+    href: '/banners',
+    icon: <IconChecklist size={18} />,
+  },
+  {
     title: 'Categories',
     label: '',
     href: '',

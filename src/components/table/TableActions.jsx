@@ -10,12 +10,14 @@ import {
   Pencil1Icon,
   TrashIcon,
   ArchiveIcon,
+  EyeOpenIcon,
 } from '@radix-ui/react-icons'
 
 export function TableActions({
   onEdit,
   onDelete,
   onArchiveToggle,
+  onView,
   isArchived,
 }) {
   return (
@@ -27,6 +29,12 @@ export function TableActions({
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align='end'>
+        {onView && (
+          <DropdownMenuItem onClick={onView}>
+            <EyeOpenIcon className='mr-2 h-4 w-4' />
+            View
+          </DropdownMenuItem>
+        )}
         {onEdit && (
           <DropdownMenuItem onClick={onEdit}>
             <Pencil1Icon className='mr-2 h-4 w-4' />
