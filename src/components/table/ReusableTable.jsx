@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react'
+import { useState } from 'react'
 import {
   flexRender,
   getCoreRowModel,
@@ -19,11 +19,12 @@ import {
 
 import { TablePagination } from './TablePagination'
 import { TableToolbar } from './TableToolbar'
-import { TableActions } from './TableActions'
 import { toast } from '@/hooks/use-toast'
 import usePostData from '@/hooks/apis/usePostData'
-import Modal from '@/components/custom/modal'
-import { Button } from '@/components/ui/button'
+import { useTableColumns } from './hooks/useTableColumns'
+import { ViewDetailsModal } from './modals/ViewDetailsModal'
+import { DeleteModal } from './modals/DeleteModal'
+import { ArchiveModal } from './modals/ArchiveModal'
 
 export function ReusableTable({
   data,
@@ -36,7 +37,7 @@ export function ReusableTable({
   searchableColumns = [],
   excludeColumns = [],
   pageSize = 10,
-  imageColumns = [], // Add this prop for image columns
+  imageColumns = [],
 }) {
   const [rowSelection, setRowSelection] = useState({})
   const [columnVisibility, setColumnVisibility] = useState({})
@@ -131,140 +132,18 @@ export function ReusableTable({
     })
   }
 
-  // Automatically generate columns from data
-  const columns = useMemo(() => {
-    if (!data || data.length === 0) return []
-
-    const firstRow = data[0]
-
-    // Get all possible column keys (excluding those in excludeColumns)
-    const columnKeys = Object.keys(firstRow).filter(
-      (key) => !excludeColumns.includes(key)
-    )
-
-    // Separate image columns and regular columns
-    const imageColumnDefs = []
-    const regularColumnDefs = []
-
-    // Process each column key
-    columnKeys.forEach((key) => {
-      // Define custom headers for specific fields
-      let header =
-        key.charAt(0).toUpperCase() + key.slice(1).replace(/([A-Z])/g, ' $1')
-
-      // Explicitly set header for isActive to "Status"
-      if (key === 'isActive') {
-        header = 'Status'
-      }
-
-      // Check if this is an image column
-      const imageColumn = imageColumns.find((col) => col.id === key)
-
-      // Base column definition
-      const columnDef = {
-        accessorKey: key,
-        header,
-        cell: ({ row }) => {
-          // Special handling for isActive column to show status badges
-          if (key === 'isActive') {
-            const isActive = row.getValue(key)
-            return (
-              <div className='flex items-center'>
-                <span
-                  className={`rounded-full px-2 py-1 text-xs font-medium ${
-                    isActive
-                      ? 'bg-green-100 text-green-800'
-                      : 'bg-gray-100 text-gray-800'
-                  }`}
-                >
-                  {isActive ? 'Active' : 'Inactive'}
-                </span>
-              </div>
-            )
-          }
-
-          // Special handling for image columns
-          if (imageColumn) {
-            const imageUrl = row.getValue(key)
-            if (!imageUrl) return null
-
-            return (
-              <div className='flex items-center'>
-                <img
-                  src={imageUrl}
-                  alt={`${header}`}
-                  style={
-                    imageColumn.imgStyle || {
-                      width: '50px',
-                      height: '50px',
-                      objectFit: 'cover',
-                    }
-                  }
-                  onError={(e) => {
-                    console.error(`Failed to load image: ${imageUrl}`)
-                    e.target.src = 'https://placehold.co/100x60?text=No+Image'
-                  }}
-                />
-              </div>
-            )
-          }
-
-          // Default rendering for other columns
-          return (
-            <div className='max-w-[200px] truncate'>{row.getValue(key)}</div>
-          )
-        },
-      }
-
-      // Add special filter function for boolean values
-      if (key === 'isActive') {
-        columnDef.filterFn = 'booleanFilter'
-      }
-
-      // Add to the appropriate array based on whether it's an image column
-      if (imageColumn) {
-        imageColumnDefs.push(columnDef)
-      } else {
-        regularColumnDefs.push(columnDef)
-      }
-    })
-
-    // Create actions column
-    const actionsColumn = {
-      id: 'actions',
-      cell: ({ row }) => (
-        <TableActions
-          row={row}
-          onView={() => handleView(row.original)}
-          onEdit={onEdit ? () => onEdit(row.original) : undefined}
-          onDelete={
-            deleteEndpoint || onDelete
-              ? () => handleDelete(row.original)
-              : undefined
-          }
-          onArchiveToggle={
-            archiveEndpoint
-              ? () => handleArchiveToggle(row.original)
-              : undefined
-          }
-          isArchived={!row.original.isActive}
-        />
-      ),
-      enableSorting: false,
-      enableHiding: false,
-    }
-
-    // Combine columns in the desired order: image columns first, then regular columns, then actions
-    return [...imageColumnDefs, ...regularColumnDefs, actionsColumn]
-  }, [
+  // Generate columns using the dedicated hook
+  const columns = useTableColumns({
     data,
     excludeColumns,
+    imageColumns,
+    onView: handleView,
     onEdit,
-    onDelete,
+    onDelete: handleDelete,
+    onArchiveToggle: handleArchiveToggle,
     deleteEndpoint,
     archiveEndpoint,
-    imageColumns,
-  ])
+  })
 
   // Prepare table with boolean filter handling
   const table = useReactTable({
@@ -305,56 +184,6 @@ export function ReusableTable({
       },
     },
   })
-
-  // Generate details view for the selected item
-  const renderItemDetails = () => {
-    if (!selectedItem) return null
-
-    return (
-      <div className='space-y-4'>
-        {Object.entries(selectedItem)
-          .filter(([key]) => !excludeColumns.includes(key))
-          .map(([key, value]) => {
-            // Special handling for image columns
-            const isImageColumn = imageColumns.some((col) => col.id === key)
-
-            return (
-              <div key={key} className='grid grid-cols-2 gap-4 border-b py-2'>
-                <div className='font-medium text-gray-700'>
-                  {key.charAt(0).toUpperCase() +
-                    key.slice(1).replace(/([A-Z])/g, ' $1')}
-                </div>
-                <div>
-                  {isImageColumn && value ? (
-                    <img
-                      src={value}
-                      alt={key}
-                      className='h-20 w-20 rounded-md object-cover'
-                      onError={(e) => {
-                        e.target.src =
-                          'https://placehold.co/100x60?text=No+Image'
-                      }}
-                    />
-                  ) : key === 'isActive' ? (
-                    <span
-                      className={`rounded-full px-2 py-1 text-xs font-medium ${
-                        value
-                          ? 'bg-green-100 text-green-800'
-                          : 'bg-gray-100 text-gray-800'
-                      }`}
-                    >
-                      {value ? 'Active' : 'Inactive'}
-                    </span>
-                  ) : (
-                    String(value || 'N/A')
-                  )}
-                </div>
-              </div>
-            )
-          })}
-      </div>
-    )
-  }
 
   return (
     <div className='space-y-4'>
@@ -413,68 +242,31 @@ export function ReusableTable({
       </div>
       <TablePagination table={table} />
 
-      {/* Delete confirmation modal */}
-      <Modal
+      {/* Use dedicated modal components */}
+      <DeleteModal
         isOpen={isDeleteModalOpen}
         onClose={() => setIsDeleteModalOpen(false)}
-        title='Confirm Delete'
-        description={`Are you sure you want to delete ${selectedItem?.name || 'this item'}?`}
-      >
-        <div className='flex justify-end space-x-2 pt-4'>
-          <Button variant='outline' onClick={() => setIsDeleteModalOpen(false)}>
-            Cancel
-          </Button>
-          <Button
-            variant='destructive'
-            onClick={confirmDelete}
-            disabled={isDeleting}
-          >
-            {isDeleting ? 'Deleting...' : 'Delete'}
-          </Button>
-        </div>
-      </Modal>
+        selectedItem={selectedItem}
+        onConfirm={confirmDelete}
+        isDeleting={isDeleting}
+      />
 
-      {/* Archive/Unarchive confirmation modal */}
-      <Modal
+      <ArchiveModal
         isOpen={isArchiveModalOpen}
         onClose={() => setIsArchiveModalOpen(false)}
-        title={`Confirm ${archiveAction === 'archive' ? 'Archive' : 'Unarchive'}`}
-        description={`Are you sure you want to ${archiveAction} ${selectedItem?.name || 'this item'}?`}
-      >
-        <div className='flex justify-end space-x-2 pt-4'>
-          <Button
-            variant='outline'
-            onClick={() => setIsArchiveModalOpen(false)}
-          >
-            Cancel
-          </Button>
-          <Button
-            onClick={confirmArchiveToggle}
-            disabled={isArchiving}
-            variant={archiveAction === 'unarchive' ? 'default' : 'secondary'}
-          >
-            {isArchiving
-              ? 'Processing...'
-              : archiveAction === 'archive'
-                ? 'Archive'
-                : 'Unarchive'}
-          </Button>
-        </div>
-      </Modal>
+        selectedItem={selectedItem}
+        onConfirm={confirmArchiveToggle}
+        isArchiving={isArchiving}
+        archiveAction={archiveAction}
+      />
 
-      {/* View details modal */}
-      <Modal
+      <ViewDetailsModal
         isOpen={isViewModalOpen}
         onClose={() => setIsViewModalOpen(false)}
-        title={`Details: ${selectedItem?.name || 'Item'}`}
-      >
-        <div className='mt-4'>{renderItemDetails()}</div>
-        <div className='flex justify-end space-x-2 pt-4'>
-          <Button variant='outline' onClick={() => setIsViewModalOpen(false)}>
-            Close
-          </Button>
-        </div>
-      </Modal>
+        selectedItem={selectedItem}
+        excludeColumns={excludeColumns}
+        imageColumns={imageColumns}
+      />
     </div>
   )
 }
