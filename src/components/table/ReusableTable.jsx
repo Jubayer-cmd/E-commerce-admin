@@ -19,12 +19,13 @@ import {
 
 import { TablePagination } from './TablePagination'
 import { TableToolbar } from './TableToolbar'
-import { toast } from '@/hooks/use-toast'
-import usePostData from '@/hooks/apis/usePostData'
+
+import usePostData from '@/hooks/apis/useMutationData'
 import { useTableColumns } from './hooks/useTableColumns'
 import { ViewDetailsModal } from './modals/ViewDetailsModal'
 import { DeleteModal } from './modals/DeleteModal'
 import { ArchiveModal } from './modals/ArchiveModal'
+import { toast } from 'sonner'
 
 export function ReusableTable({
   data,
@@ -53,17 +54,15 @@ export function ReusableTable({
 
   // Setup mutations with usePostData
   const { mutate: deleteItem, isLoading: isDeleting } = usePostData(() => {
-    toast({
-      title: 'Success',
-      description: 'Item deleted successfully',
+    toast.success('Success', {
+      description: `Item deleted successfully`,
     })
     setIsDeleteModalOpen(false)
     if (refetch) refetch()
   })
 
   const { mutate: toggleArchive, isLoading: isArchiving } = usePostData(() => {
-    toast({
-      title: 'Success',
+    toast.success('Success', {
       description: `Item ${archiveAction === 'archive' ? 'archived' : 'unarchived'} successfully`,
     })
     setIsArchiveModalOpen(false)

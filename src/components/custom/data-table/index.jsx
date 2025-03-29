@@ -1,9 +1,8 @@
 import { useState, useEffect } from 'react'
 import { DataTable } from '@/pages/tasks/components/data-table'
 import { useAxiosSecure } from '@/hooks/apis/useAxios'
-import { toast } from '@/hooks/use-toast'
-import { IconLoader2 } from '@tabler/icons-react'
 import Loading from '../loading'
+import { toast } from 'sonner'
 
 export const ReusableDataTable = ({
   endpoint,

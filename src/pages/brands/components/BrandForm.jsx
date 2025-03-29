@@ -1,8 +1,7 @@
 import { useEffect } from 'react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
-import { toast } from '@/hooks/use-toast'
-import usePostData from '@/hooks/apis/usePostData'
+import useMutationData from '@/hooks/apis/useMutationData'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useForm } from 'react-hook-form'
 import * as z from 'zod'
@@ -14,7 +13,8 @@ import {
   FormLabel,
   FormMessage,
 } from '@/components/ui/form'
-import Loading from '../../../components/custom/loading'
+import { toast } from 'sonner'
+import { IconLoader2 } from '@tabler/icons-react'
 
 // Define form schema
 const formSchema = z.object({
@@ -45,15 +45,23 @@ export default function BrandForm({ onCancel, refetch, brand }) {
     }
   }, [brand, form])
 
-  const { mutate, isLoading } = usePostData(() => {
-    toast({
-      title: 'Success',
-      description: `Brand ${brand ? 'updated' : 'created'} successfully!`,
-    })
+  const { mutate, isLoading } = useMutationData(
+    () => {
+      toast.success('Success', {
+        description: `Brand ${brand ? 'updated' : 'created'} successfully!`,
+      })
 
-    refetch?.()
-    onCancel()
-  })
+      refetch?.()
+      onCancel()
+    },
+    (error) => {
+      toast.error('Error', {
+        description:
+          error?.response?.data?.message ||
+          `Failed to ${brand ? 'update' : 'create'} brand!`,
+      })
+    }
+  )
 
   const onSubmit = (values) => {
     if (brand && brand.id) {
@@ -123,7 +131,16 @@ export default function BrandForm({ onCancel, refetch, brand }) {
             Cancel
           </Button>
           <Button type='submit' disabled={isLoading}>
-            {isLoading ? <Loading /> : brand ? 'Update Brand' : 'Save Brand'}
+            {isLoading ? (
+              <div className='flex items-center'>
+                <IconLoader2 className='mr-2 h-4 w-4 animate-spin' />
+                {brand ? 'Updating...' : 'Saving...'}
+              </div>
+            ) : brand ? (
+              'Update Brand'
+            ) : (
+              'Save Brand'
+            )}
           </Button>
         </div>
       </form>

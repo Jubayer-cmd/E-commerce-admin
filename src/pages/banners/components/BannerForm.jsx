@@ -1,8 +1,7 @@
 import { useEffect, useState } from 'react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
-import { toast } from '@/hooks/use-toast'
-import usePostData from '@/hooks/apis/usePostData'
+import useMutationData from '@/hooks/apis/useMutationData'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useForm } from 'react-hook-form'
 import * as z from 'zod'
@@ -22,7 +21,8 @@ import {
   SelectValue,
 } from '@/components/ui/select'
 import ImageInput from '@/components/ui/ImageInput'
-import Loading from '../../../components/custom/loading'
+import { toast } from 'sonner'
+import { IconLoader2 } from '@tabler/icons-react'
 
 const formSchema = z.object({
   title: z.string().min(1, { message: 'Banner title is required' }),
@@ -31,7 +31,6 @@ const formSchema = z.object({
 })
 
 export default function BannerForm({ onCancel, refetch, banner }) {
-  const [selectedFile, setSelectedFile] = useState(null)
   const [previewUrl, setPreviewUrl] = useState('')
 
   // Initialize form
@@ -58,15 +57,24 @@ export default function BannerForm({ onCancel, refetch, banner }) {
     }
   }, [banner, form])
 
-  const { mutate, isLoading } = usePostData(() => {
-    toast({
-      title: 'Success',
-      description: `Banner ${banner ? 'updated' : 'created'} successfully!`,
-    })
+  // Just ensure we're using the consistent pattern
+  const { mutate, isLoading } = useMutationData(
+    () => {
+      toast.success('Success', {
+        description: `Banner ${banner ? 'updated' : 'created'} successfully!`,
+      })
 
-    refetch?.()
-    onCancel()
-  })
+      refetch?.()
+      onCancel()
+    },
+    (error) => {
+      toast.error('Error', {
+        description:
+          error?.response?.data?.message ||
+          `Failed to ${banner ? 'update' : 'create'} banner!`,
+      })
+    }
+  )
 
   const onSubmit = (values) => {
     // Create FormData object to handle file upload
@@ -75,8 +83,8 @@ export default function BannerForm({ onCancel, refetch, banner }) {
     formData.append('type', values.type)
 
     // Only append file if a new one is selected
-    if (selectedFile) {
-      formData.append('image', selectedFile)
+    if (values.image instanceof File) {
+      formData.append('image', values.image)
     } else if (banner?.image && previewUrl) {
       // If editing and no new file selected, pass the existing image URL
       formData.append('imageUrl', banner.image)
@@ -131,7 +139,6 @@ export default function BannerForm({ onCancel, refetch, banner }) {
               <FormControl>
                 <ImageInput
                   onChange={(file) => {
-                    setSelectedFile(file)
                     form.setValue('image', file)
                   }}
                   previewUrl={previewUrl}
@@ -172,7 +179,16 @@ export default function BannerForm({ onCancel, refetch, banner }) {
             Cancel
           </Button>
           <Button type='submit' disabled={isLoading}>
-            {isLoading ? <Loading /> : banner ? 'Update Banner' : 'Save Banner'}
+            {isLoading ? (
+              <div className='flex items-center'>
+                <IconLoader2 className='mr-2 h-4 w-4 animate-spin' />
+                {banner ? 'Updating...' : 'Saving...'}
+              </div>
+            ) : banner ? (
+              'Update Banner'
+            ) : (
+              'Save Banner'
+            )}
           </Button>
         </div>
       </form>

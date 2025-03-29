@@ -23,7 +23,7 @@ import { Textarea } from '@/components/ui/textarea'
 
 import { cn } from '@/lib/utils'
 import { zodResolver } from '@hookform/resolvers/zod'
-import { toast } from '@/hooks/use-toast'
+import { toast } from 'sonner'
 
 const profileFormSchema = z.object({
   username: z
@@ -71,7 +71,7 @@ export default function ProfileForm() {
   })
 
   function onSubmit(data) {
-    toast({
+    toast.success({
       title: 'You submitted the following values:',
       description: (
         <pre className='mt-2 w-[340px] rounded-md bg-slate-950 p-4'>

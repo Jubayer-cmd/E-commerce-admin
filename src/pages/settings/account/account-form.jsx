@@ -27,7 +27,7 @@ import {
 } from '@/components/ui/popover'
 
 import { CalendarIcon, CaretSortIcon, CheckIcon } from '@radix-ui/react-icons'
-import { toast } from '@/hooks/use-toast'
+import { toast } from 'sonner'
 
 const languages = [
   { label: 'English', value: 'en' },
@@ -68,7 +68,7 @@ export function AccountForm() {
   })
 
   function onSubmit(data) {
-    toast({
+    toast.success({
       title: 'You submitted the following values:',
       description: (
         <pre className='mt-2 w-[340px] rounded-md bg-slate-950 p-4'>

@@ -17,7 +17,7 @@ import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group'
 import { Switch } from '@/components/ui/switch'
 
 import { Link } from 'react-router-dom'
-import { toast } from '@/hooks/use-toast'
+import { toast } from 'sonner'
 
 const notificationsFormSchema = z.object({
   type: z.enum(['all', 'mentions', 'none'], {
@@ -42,7 +42,7 @@ export function NotificationsForm() {
   })
 
   function onSubmit(data) {
-    toast({
+    toast.success({
       title: 'You submitted the following values:',
       description: (
         <pre className='mt-2 w-[340px] rounded-md bg-slate-950 p-4'>
