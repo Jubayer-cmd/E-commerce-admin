@@ -7,8 +7,7 @@ import { ReusableTable } from '@/components/table/ReusableTable'
 import useFetchData from '@/hooks/apis/useFetchData'
 
 export default function Brands() {
-  const [isModalOpen, setIsModalOpen] = useState(false)
-  const [selectedBrand, setSelectedBrand] = useState(null)
+  const [modalState, setModalState] = useState({ isOpen: false, brand: null })
 
   const {
     data: brands = [],
@@ -16,30 +15,11 @@ export default function Brands() {
     refetch,
   } = useFetchData('brands', '/brand/', {}, true)
 
-  const handleEdit = (brand) => {
-    setSelectedBrand(brand)
-    setIsModalOpen(true)
-  }
+  // Single function to manage modal state
+  const toggleModal = (isOpen, brand = null) => setModalState({ isOpen, brand })
 
-  const handleOpenModal = () => {
-    setSelectedBrand(null) // Reset selected brand for create mode
-    setIsModalOpen(true)
-  }
-
-  const handleCloseModal = () => {
-    setIsModalOpen(false)
-    setSelectedBrand(null)
-  }
-
-  const handleFormSuccess = () => {
-    setIsModalOpen(false)
-    setSelectedBrand(null)
-    // Use refetch from useFetchData to refresh data
-    refetch()
-  }
-
-  const modalTitle = selectedBrand ? 'Edit Brand' : 'Create New Brand'
-  const modalDescription = selectedBrand
+  const modalTitle = modalState.brand ? 'Edit Brand' : 'Create New Brand'
+  const modalDescription = modalState.brand
     ? 'Update brand information'
     : 'Add a new brand to your product catalog'
 
@@ -48,7 +28,7 @@ export default function Brands() {
       <Layout.Header sticky>
         <h1 className='text-2xl font-bold'>Brands</h1>
         <div className='ml-auto flex items-center space-x-4'>
-          <Button onClick={handleOpenModal}>Create brand</Button>
+          <Button onClick={() => toggleModal(true)}>Create brand</Button>
         </div>
       </Layout.Header>
 
@@ -61,15 +41,16 @@ export default function Brands() {
           ) : (
             <ReusableTable
               data={brands.data || []}
-              onEdit={handleEdit}
+              onEdit={(brand) => toggleModal(true, brand)}
               deleteEndpoint='/brand'
               archiveEndpoint='/brand'
               refetch={refetch}
               searchableColumns={[{ id: 'name', title: 'Brand Name' }]}
+              //TODO: fix the filtering
               filterableColumns={[
                 {
                   id: 'isActive',
-                  title: 'Status', // Set title to Status for dropdown display
+                  title: 'Status',
                   options: [
                     { label: 'Active', value: true },
                     { label: 'Inactive', value: false },
@@ -84,15 +65,15 @@ export default function Brands() {
       </Layout.Body>
 
       <Modal
-        isOpen={isModalOpen}
-        onClose={handleCloseModal}
+        isOpen={modalState.isOpen}
+        onClose={() => toggleModal(false)}
         title={modalTitle}
         description={modalDescription}
       >
         <BrandForm
-          onCancel={handleCloseModal}
-          onSuccess={handleFormSuccess}
-          brand={selectedBrand}
+          onCancel={() => toggleModal(false)}
+          refetch={refetch}
+          brand={modalState.brand}
         />
       </Modal>
     </Layout>

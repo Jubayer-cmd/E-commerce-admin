@@ -5,27 +5,21 @@ import { Label } from '@/components/ui/label'
 import { toast } from '@/hooks/use-toast'
 import usePostData from '@/hooks/apis/usePostData'
 
-export default function BrandForm({ onCancel, onSuccess, brand }) {
+export default function BrandForm({ onCancel, refetch, brand }) {
   const [formData, setFormData] = useState({
     name: brand?.name || '',
     logo: brand?.logo || '',
     description: brand?.description || '',
   })
 
-  // Using usePostData hook with success callback
   const { mutate, isLoading } = usePostData(() => {
     toast({
       title: 'Success',
-      description: brand
-        ? 'Brand updated successfully!'
-        : 'Brand created successfully!',
+      description: `Brand ${brand ? 'updated' : 'created'} successfully!`,
     })
-    // Call onSuccess if provided, otherwise use onCancel
-    if (onSuccess) {
-      onSuccess()
-    } else {
-      onCancel()
-    }
+
+    refetch?.() // Optional chaining for cleaner code
+    onCancel()
   })
 
   const handleChange = (e) => {
@@ -33,18 +27,18 @@ export default function BrandForm({ onCancel, onSuccess, brand }) {
     setFormData((prev) => ({ ...prev, [name]: value }))
   }
 
-  const handleSubmit = async (e) => {
+  const handleSubmit = (e) => {
     e.preventDefault()
 
-    if (brand?._id) {
-      // Update existing brand
+    if (brand && brand.id) {
+      // Update existing brand - use PATCH
       mutate({
         method: 'patch',
-        url: `/brand/${brand._id}`,
+        url: `/brand/${brand.id}`,
         data: formData,
       })
     } else {
-      // Create new brand
+      // Create new brand - use POST
       mutate({
         method: 'post',
         url: '/brand/create-brand',
