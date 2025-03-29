@@ -1,4 +1,4 @@
-import { Cross2Icon } from '@radix-ui/react-icons'
+import { Cross2Icon, MixerHorizontalIcon } from '@radix-ui/react-icons'
 import { Button } from '@/components/custom/button'
 import { Input } from '@/components/ui/input'
 import {
@@ -74,7 +74,7 @@ export function TableToolbar({
                   // Get current filter values
                   const filterValue = tableColumn.getFilterValue() || []
 
-                  // Special handling for isActive boolean values
+                  // For boolean filters, compare stringified values to handle true/false properly
                   const isSelected = isActiveColumn
                     ? filterValue.some(
                         (val) => String(val) === String(option.value)
@@ -89,11 +89,16 @@ export function TableToolbar({
                         // Current filter values
                         const filterValues = tableColumn.getFilterValue() || []
 
-                        // For boolean values, make sure we're using the correct type
-                        const valueToUse =
-                          isActiveColumn && typeof option.value === 'boolean'
-                            ? option.value // Keep as boolean for isActive
-                            : option.value
+                        // Convert the filter value based on the column type
+                        let valueToUse = option.value
+
+                        // For boolean columns, ensure we use the actual boolean value, not string
+                        if (isActiveColumn) {
+                          valueToUse =
+                            typeof option.value === 'string'
+                              ? option.value === 'true'
+                              : option.value
+                        }
 
                         if (checked) {
                           // Add to filters if not already included
@@ -124,6 +129,7 @@ export function TableToolbar({
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <Button variant='outline' size='sm' className='ml-auto'>
+              <MixerHorizontalIcon className='mr-2 h-4 w-4' />
               View
             </Button>
           </DropdownMenuTrigger>

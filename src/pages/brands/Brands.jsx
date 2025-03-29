@@ -46,7 +46,6 @@ export default function Brands() {
               archiveEndpoint='/brand'
               refetch={refetch}
               searchableColumns={[{ id: 'name', title: 'Brand Name' }]}
-              //TODO: fix the filtering
               filterableColumns={[
                 {
                   id: 'isActive',

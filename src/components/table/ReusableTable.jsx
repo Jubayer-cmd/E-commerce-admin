@@ -140,7 +140,8 @@ export function ReusableTable({
           header = 'Status'
         }
 
-        return {
+        // Base column definition
+        const columnDef = {
           accessorKey: key,
           header,
           cell: ({ row }) => {
@@ -168,6 +169,13 @@ export function ReusableTable({
             )
           },
         }
+
+        // Add special filter function for boolean values
+        if (key === 'isActive') {
+          columnDef.filterFn = 'booleanFilter'
+        }
+
+        return columnDef
       })
 
     // Add actions column
