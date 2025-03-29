@@ -22,6 +22,7 @@ import {
   SelectValue,
 } from '@/components/ui/select'
 import ImageInput from '@/components/ui/ImageInput'
+import Loading from '../../../components/custom/loading'
 
 const formSchema = z.object({
   title: z.string().min(1, { message: 'Banner title is required' }),
@@ -171,7 +172,7 @@ export default function BannerForm({ onCancel, refetch, banner }) {
             Cancel
           </Button>
           <Button type='submit' disabled={isLoading}>
-            {isLoading ? 'Saving...' : banner ? 'Update Banner' : 'Save Banner'}
+            {isLoading ? <Loading /> : banner ? 'Update Banner' : 'Save Banner'}
           </Button>
         </div>
       </form>

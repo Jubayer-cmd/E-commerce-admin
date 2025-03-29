@@ -2,6 +2,7 @@ import { useContext, Suspense } from 'react'
 import { Navigate, Outlet } from 'react-router-dom'
 import { AuthContext } from '@/lib/AuthProvider'
 import AppShell from '@/components/app-shell'
+import Loading from '../components/custom/loading'
 
 export default function PrivateLayout() {
   const { user, loading, error } = useContext(AuthContext)
@@ -9,7 +10,7 @@ export default function PrivateLayout() {
   if (loading) {
     return (
       <div className='flex h-screen items-center justify-center'>
-        Loading...
+        <Loading />
       </div>
     )
   }
@@ -27,7 +28,7 @@ export default function PrivateLayout() {
       <Suspense
         fallback={
           <div className='flex h-screen items-center justify-center'>
-            Loading...
+            <Loading />
           </div>
         }
       >

@@ -3,6 +3,7 @@ import { DataTable } from '@/pages/tasks/components/data-table'
 import { useAxiosSecure } from '@/hooks/apis/useAxios'
 import { toast } from '@/hooks/use-toast'
 import { IconLoader2 } from '@tabler/icons-react'
+import Loading from '../loading'
 
 export const ReusableDataTable = ({
   endpoint,
@@ -54,15 +55,7 @@ export const ReusableDataTable = ({
   }, [endpoint, refreshTrigger, JSON.stringify(filterParams)])
 
   return (
-    <>
-      {isLoading ? (
-        <div className='flex h-64 items-center justify-center'>
-          <IconLoader2 className='h-8 w-8 animate-spin text-primary' />
-        </div>
-      ) : (
-        <DataTable data={data} columns={columns} />
-      )}
-    </>
+    <>{isLoading ? <Loading /> : <DataTable data={data} columns={columns} />}</>
   )
 }
 

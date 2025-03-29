@@ -14,6 +14,7 @@ import {
   FormLabel,
   FormMessage,
 } from '@/components/ui/form'
+import Loading from '../../../components/custom/loading'
 
 // Define form schema
 const formSchema = z.object({
@@ -122,7 +123,7 @@ export default function BrandForm({ onCancel, refetch, brand }) {
             Cancel
           </Button>
           <Button type='submit' disabled={isLoading}>
-            {isLoading ? 'Saving...' : brand ? 'Update Brand' : 'Save Brand'}
+            {isLoading ? <Loading /> : brand ? 'Update Brand' : 'Save Brand'}
           </Button>
         </div>
       </form>

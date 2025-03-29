@@ -3,6 +3,7 @@ import { createBrowserRouter } from 'react-router-dom'
 import { lazy, Suspense } from 'react'
 import RootLayout from '@/layouts/RootLayout'
 import PrivateLayout from '@/layouts/PrivateLayout'
+import Loading from '../components/custom/loading'
 const Dashboard = lazy(() => import('@/pages/dashboard'))
 const NotFoundError = lazy(() => import('@/pages/errors/not-found-error'))
 const Tasks = lazy(() => import('@/pages/tasks'))
@@ -27,7 +28,7 @@ const Category = lazy(() => import('@/pages/categories/category/Category'))
 const SettingsDisplay = lazy(() => import('@/pages/settings/display'))
 
 const withSuspense = (Component) => (
-  <Suspense fallback={<div>Loading...</div>}>
+  <Suspense fallback={<Loading />}>
     <Component />
   </Suspense>
 )

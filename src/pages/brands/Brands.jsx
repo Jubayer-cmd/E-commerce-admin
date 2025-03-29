@@ -5,6 +5,7 @@ import Modal from '@/components/custom/modal'
 import BrandForm from './components/BrandForm'
 import { ReusableTable } from '@/components/table/ReusableTable'
 import useFetchData from '@/hooks/apis/useFetchData'
+import Loading from '../../components/custom/loading'
 
 export default function Brands() {
   const [modalState, setModalState] = useState({ isOpen: false, brand: null })
@@ -35,9 +36,7 @@ export default function Brands() {
       <Layout.Body>
         <div className='-mx-4 flex-1 overflow-auto px-4 py-1 lg:flex-row lg:space-x-12 lg:space-y-0'>
           {isLoading ? (
-            <div className='flex h-64 items-center justify-center'>
-              <div className='h-12 w-12 animate-spin rounded-full border-b-2 border-primary'></div>
-            </div>
+            <Loading />
           ) : (
             <ReusableTable
               data={brands.data || []}
