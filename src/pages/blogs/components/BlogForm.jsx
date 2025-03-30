@@ -17,6 +17,7 @@ import {
 import { toast } from 'sonner'
 import { IconLoader2 } from '@tabler/icons-react'
 import ImageInput from '@/components/ui/ImageInput'
+import { useAuth } from '@/lib/utils'
 
 // Define form schema
 const formSchema = z.object({
@@ -24,14 +25,15 @@ const formSchema = z.object({
   content: z
     .string()
     .min(10, { message: 'Content must be at least 10 characters' }),
-  image: z.string().optional(),
-  // In a real app, you might not need to set authorId/authorName manually
-  // as it could be derived from the authenticated user
+  image: z.any(),
   authorName: z.string().min(1, { message: 'Author name is required' }),
+  authorId: z.string().optional(),
 })
 
 export default function BlogForm({ onCancel, refetch, blog }) {
   const [uploading, setUploading] = useState(false)
+  const [previewUrl, setPreviewUrl] = useState('')
+  const { user } = useAuth()
 
   // Initialize form
   const form = useForm({
@@ -39,22 +41,32 @@ export default function BlogForm({ onCancel, refetch, blog }) {
     defaultValues: {
       title: blog?.title || '',
       content: blog?.content || '',
-      image: blog?.image || '',
-      authorName: blog?.authorName || '',
+      image: undefined,
+      authorName: blog?.authorName || (user ? user.name : ''),
+      authorId: blog?.authorId || (user ? user.id : ''),
     },
   })
 
-  // Update form values when blog prop changes
+  // Update form values when blog prop or user changes
   useEffect(() => {
     if (blog) {
       form.reset({
         title: blog.title || '',
         content: blog.content || '',
-        image: blog.image || '',
-        authorName: blog.authorName || '',
+        image: undefined,
+        authorName: blog.authorName || (user ? user.name : ''),
+        authorId: blog.authorId || (user ? user.id : ''),
       })
+
+      if (blog.image) {
+        setPreviewUrl(blog.image)
+      }
+    } else if (user) {
+      // Update author fields if user is available but no blog is being edited
+      form.setValue('authorName', user.name || '')
+      form.setValue('authorId', user.id || '')
     }
-  }, [blog, form])
+  }, [blog, user, form])
 
   const { mutate, isLoading } = useMutationData(
     () => {
@@ -75,53 +87,49 @@ export default function BlogForm({ onCancel, refetch, blog }) {
   )
 
   const onSubmit = (values) => {
+    // Create FormData object to handle file upload
+    const formData = new FormData()
+    formData.append('title', values.title)
+    formData.append('content', values.content)
+    formData.append('authorName', values.authorName)
+
+    // Ensure authorId is set from the current user
+    if (user && !values.authorId) {
+      values.authorId = user.id
+    }
+    formData.append('authorId', values.authorId)
+
+    // Remove the author connect object - not needed anymore
+
+    // Only append file if a new one is selected
+    if (values.image instanceof File) {
+      formData.append('image', values.image)
+    } else if (blog?.image && previewUrl) {
+      // If editing and no new file selected, pass the existing image URL
+      formData.append('imageUrl', blog.image)
+    }
+
     if (blog && blog.id) {
       // Update existing blog
       mutate({
         method: 'patch',
         url: `/blogs/${blog.id}`,
-        data: values,
+        data: formData,
+        headers: {
+          'Content-Type': 'multipart/form-data',
+        },
       })
     } else {
       // Create new blog
       mutate({
         method: 'post',
-        url: '/blogs',
-        data: values,
+        url: '/blogs/create-blogs',
+        data: formData,
+        headers: {
+          'Content-Type': 'multipart/form-data',
+        },
       })
     }
-  }
-
-  // Handle image upload
-  const handleImageUpload = async (file) => {
-    if (!file) return
-
-    const formData = new FormData()
-    formData.append('file', file)
-
-    setUploading(true)
-
-    try {
-      // Replace with your actual image upload endpoint
-      const response = await fetch('/api/upload', {
-        method: 'POST',
-        body: formData,
-      })
-
-      const data = await response.json()
-
-      if (data.url) {
-        form.setValue('image', data.url)
-        toast.success('Image uploaded successfully')
-        return data.url
-      }
-    } catch (error) {
-      toast.error('Failed to upload image')
-      console.error('Upload error:', error)
-    } finally {
-      setUploading(false)
-    }
-    return null
   }
 
   return (
@@ -163,20 +171,19 @@ export default function BlogForm({ onCancel, refetch, blog }) {
         <FormField
           control={form.control}
           name='image'
-          render={({ field }) => (
+          render={({ field: { ...field } }) => (
             <FormItem>
               <FormLabel>Featured Image</FormLabel>
               <FormControl>
                 <ImageInput
-                  previewUrl={field.value}
-                  onChange={async (file) => {
+                  previewUrl={previewUrl}
+                  onChange={(file) => {
                     if (file) {
-                      const uploadedUrl = await handleImageUpload(file)
-                      if (uploadedUrl) {
-                        field.onChange(uploadedUrl)
-                      }
+                      setPreviewUrl(URL.createObjectURL(file))
+                      form.setValue('image', file)
                     }
                   }}
+                  {...field}
                 />
               </FormControl>
               <FormMessage />
