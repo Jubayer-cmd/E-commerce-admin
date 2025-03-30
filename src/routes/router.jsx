@@ -4,6 +4,8 @@ import { lazy, Suspense } from 'react'
 import RootLayout from '@/layouts/RootLayout'
 import PrivateLayout from '@/layouts/PrivateLayout'
 import Loading from '../components/custom/loading'
+import { AuthProvider } from '@/lib/AuthProvider'
+
 const Dashboard = lazy(() => import('@/pages/dashboard'))
 const NotFoundError = lazy(() => import('@/pages/errors/not-found-error'))
 const Tasks = lazy(() => import('@/pages/tasks'))
@@ -15,6 +17,7 @@ const ForgotPassword = lazy(() => import('@/pages/auth/forgot-password'))
 const Otp = lazy(() => import('@/pages/auth/otp'))
 const SettingsAccount = lazy(() => import('@/pages/settings/account'))
 const SettingsAppearance = lazy(() => import('@/pages/settings/appearance'))
+const Blogs = lazy(() => import('@/pages/blogs/blogs'))
 const SettingsNotifications = lazy(
   () => import('@/pages/settings/notifications')
 )
@@ -33,9 +36,15 @@ const withSuspense = (Component) => (
   </Suspense>
 )
 
+const AuthenticatedRootLayout = () => (
+  <AuthProvider>
+    <RootLayout />
+  </AuthProvider>
+)
+
 const routes = createBrowserRouter([
   {
-    element: <RootLayout />,
+    element: <AuthenticatedRootLayout />,
     errorElement: withSuspense(NotFoundError),
     children: [
       {
@@ -70,6 +79,10 @@ const routes = createBrowserRouter([
           {
             path: 'brands',
             element: withSuspense(Brands),
+          },
+          {
+            path: 'blogs',
+            element: withSuspense(Blogs),
           },
           {
             path: 'settings',

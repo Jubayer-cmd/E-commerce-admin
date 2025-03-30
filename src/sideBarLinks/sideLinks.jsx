@@ -31,9 +31,9 @@ export const sidelinks = [
     icon: <IconChecklist size={18} />,
   },
   {
-    title: 'Brands',
+    title: 'Blogs',
     label: '3',
-    href: '/brands',
+    href: '/blogs',
     icon: <IconChecklist size={18} />,
   },
   {
@@ -43,22 +43,28 @@ export const sidelinks = [
     icon: <IconChecklist size={18} />,
   },
   {
-    title: 'Categories',
+    title: 'Product',
     label: '',
     href: '',
     icon: <IconUserShield size={18} />,
     sub: [
       {
+        title: 'Brands',
+        label: '3',
+        href: '/brands',
+        icon: <IconHexagonNumber1 size={18} />,
+      },
+      {
         title: 'Category',
         label: '',
         href: '/category',
-        icon: <IconHexagonNumber1 size={18} />,
+        icon: <IconHexagonNumber2 size={18} />,
       },
       {
         title: 'Sub-Category',
         label: '',
         href: '/subcategories',
-        icon: <IconHexagonNumber2 size={18} />,
+        icon: <IconHexagonNumber3 size={18} />,
       },
     ],
   },
