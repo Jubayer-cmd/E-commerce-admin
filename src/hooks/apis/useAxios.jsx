@@ -21,7 +21,6 @@ export const useAxiosSecure = () => {
   useEffect(() => {
     const reqInterceptor = axiosSecure.interceptors.request.use((config) => {
       const token = localStorage.getItem('token')
-      console.log('token', token)
       config.headers.authorization = `Bearer ${token}`
       return config
     })
@@ -56,7 +55,6 @@ export const useAxiosSecure = () => {
 export const useAxiosPublic = () => {
   useEffect(() => {
     const reqInterceptor = axiosPublic.interceptors.request.use((config) => {
-      console.log('Public request:', config)
       return config
     })
 

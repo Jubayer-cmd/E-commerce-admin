@@ -1,7 +1,6 @@
 import { useEffect, useState } from 'react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
-import { Textarea } from '@/components/ui/textarea'
 import useMutationData from '@/hooks/apis/useMutationData'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useForm } from 'react-hook-form'
@@ -18,6 +17,7 @@ import { toast } from 'sonner'
 import { IconLoader2 } from '@tabler/icons-react'
 import ImageInput from '@/components/ui/ImageInput'
 import { useAuth } from '@/lib/utils'
+import LexicalEditor from '@/components/ui/LexicalEditor'
 
 // Define form schema
 const formSchema = z.object({
@@ -156,11 +156,11 @@ export default function BlogForm({ onCancel, refetch, blog }) {
             <FormItem>
               <FormLabel>Content</FormLabel>
               <FormControl>
-                <Textarea
+                <LexicalEditor
                   placeholder='Write your blog post here...'
-                  {...field}
-                  rows={8}
-                  className='min-h-[200px]'
+                  value={field.value}
+                  onChange={field.onChange}
+                  error={form.formState.errors.content}
                 />
               </FormControl>
               <FormMessage />
