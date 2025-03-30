@@ -53,7 +53,12 @@ export function TableToolbar({
         {filterableColumns.map((column) => {
           const tableColumn = table.getColumn(column.id)
 
-          if (!tableColumn) return null
+          if (!tableColumn) {
+            console.warn(
+              `Column with id '${column.id}' not found for filtering.`
+            )
+            return null
+          }
 
           // Check if this is the isActive column for special handling
           const isActiveColumn = column.id === 'isActive'
@@ -138,7 +143,10 @@ export function TableToolbar({
             <DropdownMenuSeparator />
             {table
               .getAllColumns()
-              .filter((column) => column.getCanHide())
+              .filter(
+                (column) =>
+                  column.getCanHide() && !column.id.startsWith('filter_')
+              )
               .map((column) => (
                 <DropdownMenuCheckboxItem
                   key={column.id}

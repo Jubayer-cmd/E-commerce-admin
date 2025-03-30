@@ -19,9 +19,30 @@ export default function Subcategory() {
     refetch,
   } = useFetchData('subcategories', '/subcategories/', {}, true)
 
+  const { data: categories, isLoading: categoriesLoading } = useFetchData(
+    'categories',
+    '/categories/',
+    {},
+    true
+  )
+
   // Single function to manage modal state
   const toggleModal = (isOpen, subcategory = null) =>
     setModalState({ isOpen, subcategory })
+
+  // Transform the data to include category names
+  const processedSubcategories = (subcategories.data || []).map((item) => {
+    // Find the matching category
+    const matchingCategory = (categories?.data || []).find(
+      (category) => category.id === item.categoryId
+    )
+
+    return {
+      ...item,
+      // Add categoryName property with the actual category name
+      categoryName: matchingCategory ? matchingCategory.name : 'Not Assigned',
+    }
+  })
 
   const modalTitle = modalState.subcategory
     ? 'Edit Sub-Category'
@@ -43,18 +64,18 @@ export default function Subcategory() {
 
       <Layout.Body>
         <div className='-mx-4 flex-1 overflow-auto px-4 py-1 lg:flex-row lg:space-x-12 lg:space-y-0'>
-          {isLoading ? (
+          {isLoading || categoriesLoading ? (
             <Loading />
           ) : (
             <ReusableTable
-              data={subcategories.data || []}
+              data={processedSubcategories}
               onEdit={(subcategory) => toggleModal(true, subcategory)}
               deleteEndpoint='/subcategories'
               archiveEndpoint='/subcategories'
               refetch={refetch}
               searchableColumns={[
                 { id: 'name', title: 'Subcategory Name' },
-                { id: 'category.name', title: 'Category Name' },
+                { id: 'categoryName', title: 'Category Name' },
               ]}
               filterableColumns={[
                 {
@@ -68,25 +89,27 @@ export default function Subcategory() {
                 {
                   id: 'categoryId',
                   title: 'Category',
-                  options: subcategories.data
-                    ? [
-                        ...new Map(
-                          subcategories.data
-                            .filter((item) => item.category) // Filter out items without category
-                            .map((item) => [
-                              item.category.id,
-                              {
-                                label: item.category.name,
-                                value: item.category.id,
-                              },
-                            ])
-                        ).values(),
-                      ]
-                    : [],
+                  options: (categories?.data || [])
+                    .filter((category) => category && category.id)
+                    .map((category) => ({
+                      label: category.name,
+                      value: category.id,
+                    })),
                 },
               ]}
-              excludeColumns={['createdAt', 'updatedAt', 'id', 'categoryId']}
+              excludeColumns={[
+                'createdAt',
+                'updatedAt',
+                'id',
+                'categoryId',
+                'category',
+              ]}
               pageSize={10}
+              columnFormatters={{
+                categoryName: (value) => (
+                  <span className='font-medium'>{value}</span>
+                ),
+              }}
             />
           )}
         </div>

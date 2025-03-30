@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import {
   flexRender,
   getCoreRowModel,
@@ -39,6 +39,7 @@ export function ReusableTable({
   excludeColumns = [],
   pageSize = 10,
   imageColumns = [],
+  columnFormatters = {},
 }) {
   const [rowSelection, setRowSelection] = useState({})
   const [columnVisibility, setColumnVisibility] = useState({})
@@ -131,6 +132,11 @@ export function ReusableTable({
     })
   }
 
+  // Extract filter-only columns (columns that are excluded but used for filtering)
+  const filterOnlyColumnIds = filterableColumns
+    .map((col) => col.id)
+    .filter((id) => excludeColumns.includes(id))
+
   // Generate columns using the dedicated hook
   const columns = useTableColumns({
     data,
@@ -142,15 +148,50 @@ export function ReusableTable({
     onArchiveToggle: handleArchiveToggle,
     deleteEndpoint,
     archiveEndpoint,
+    columnFormatters,
   })
+
+  // Create visibility state with excluded columns hidden
+  const getExcludedVisibility = () => {
+    const visibility = {}
+    excludeColumns.forEach((col) => {
+      visibility[col] = false
+    })
+    return visibility
+  }
+
+  // Initialize column visibility state
+  useEffect(() => {
+    setColumnVisibility((prev) => ({
+      ...prev,
+      ...getExcludedVisibility(),
+    }))
+  }, [excludeColumns.join(',')])
+
+  // Add any additional accessor columns needed for filtering
+  const filterOnlyAccessors = filterOnlyColumnIds.map((id) => ({
+    accessorKey: id,
+    id: id,
+    header: id.charAt(0).toUpperCase() + id.slice(1),
+    enableHiding: false,
+    size: 0, // Make the column as small as possible
+    minSize: 0,
+  }))
+
+  // Correctly combine all columns
+  const allColumns = [...columns, ...filterOnlyAccessors]
 
   // Prepare table with boolean filter handling
   const table = useReactTable({
     data,
-    columns,
+    // Important: use allColumns instead of just columns
+    columns: allColumns,
     state: {
       sorting,
-      columnVisibility,
+      columnVisibility: {
+        ...getExcludedVisibility(),
+        ...columnVisibility,
+      },
       rowSelection,
       columnFilters,
     },
@@ -172,7 +213,14 @@ export function ReusableTable({
     onRowSelectionChange: setRowSelection,
     onSortingChange: setSorting,
     onColumnFiltersChange: setColumnFilters,
-    onColumnVisibilityChange: setColumnVisibility,
+    onColumnVisibilityChange: (updatedVisibility) => {
+      // Apply the updated visibility while keeping excluded columns hidden
+      const newVisibility = { ...updatedVisibility }
+      excludeColumns.forEach((col) => {
+        newVisibility[col] = false
+      })
+      setColumnVisibility(newVisibility)
+    },
     getCoreRowModel: getCoreRowModel(),
     getFilteredRowModel: getFilteredRowModel(),
     getPaginationRowModel: getPaginationRowModel(),
@@ -181,6 +229,8 @@ export function ReusableTable({
       pagination: {
         pageSize,
       },
+      // Set excluded columns as hidden in the initial state
+      columnVisibility: getExcludedVisibility(),
     },
   })
 
@@ -229,7 +279,7 @@ export function ReusableTable({
             ) : (
               <TableRow>
                 <TableCell
-                  colSpan={columns.length}
+                  colSpan={allColumns.length}
                   className='h-24 text-center'
                 >
                   No results.

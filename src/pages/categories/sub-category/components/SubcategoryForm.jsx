@@ -39,6 +39,8 @@ export default function SubcategoryForm({ onCancel, refetch, subcategory }) {
     {},
     true
   )
+
+  // Correctly access the categories array
   const categories = categoriesData?.data || []
 
   // Initialize form

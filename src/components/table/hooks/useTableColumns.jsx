@@ -11,15 +11,19 @@ export function useTableColumns({
   onArchiveToggle,
   deleteEndpoint,
   archiveEndpoint,
+  columnFormatters = {},
 }) {
   return useMemo(() => {
     if (!data || data.length === 0) return []
 
     const firstRow = data[0]
 
+    // Create a Set from excludeColumns for faster lookups
+    const excludeColumnsSet = new Set(excludeColumns)
+
     // Get all possible column keys (excluding those in excludeColumns)
     const columnKeys = Object.keys(firstRow).filter(
-      (key) => !excludeColumns.includes(key)
+      (key) => !excludeColumnsSet.has(key)
     )
 
     // Separate image columns and regular columns
@@ -45,6 +49,11 @@ export function useTableColumns({
         accessorKey: key,
         header,
         cell: ({ row }) => {
+          // Check if there's a custom formatter for this column
+          if (columnFormatters && columnFormatters[key]) {
+            return columnFormatters[key](row.getValue(key), row)
+          }
+
           // Special handling for isActive column to show status badges
           if (key === 'isActive') {
             const isActive = row.getValue(key)
@@ -144,5 +153,6 @@ export function useTableColumns({
     deleteEndpoint,
     archiveEndpoint,
     imageColumns,
+    columnFormatters,
   ])
 }
