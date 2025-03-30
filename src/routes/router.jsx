@@ -8,6 +8,7 @@ import { AuthProvider } from '@/lib/AuthProvider'
 
 const Dashboard = lazy(() => import('@/pages/dashboard'))
 const NotFoundError = lazy(() => import('@/pages/errors/not-found-error'))
+const Users = lazy(() => import('@/pages/users/users'))
 const Tasks = lazy(() => import('@/pages/tasks'))
 const ComingSoon = lazy(() => import('@/components/coming-soon'))
 const SettingsProfile = lazy(() => import('@/pages/settings/profile'))
@@ -62,7 +63,7 @@ const routes = createBrowserRouter([
         children: [
           { index: true, element: withSuspense(Dashboard) },
           { path: 'tasks', element: withSuspense(Tasks) },
-          { path: 'users', element: withSuspense(ComingSoon) },
+          { path: 'users', element: withSuspense(Users) },
           { path: 'analysis', element: withSuspense(ComingSoon) },
           {
             path: 'category',

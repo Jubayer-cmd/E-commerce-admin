@@ -5,7 +5,7 @@ import { cn } from '@/lib/utils'
 import { Layout } from './custom/layout'
 import { Button } from './custom/button'
 import Nav from './nav'
-import { sidelinks } from '@/sideBarLinks/sideLinks'
+import { sidelinks } from '@/routes/sideBarLinks/sideLinks'
 
 export default function Sidebar({ className, isCollapsed, setIsCollapsed }) {
   const [navOpened, setNavOpened] = useState(false)
