@@ -60,7 +60,7 @@ const routes = createBrowserRouter([
             element: withSuspense(Category),
           },
           {
-            path: 'sub-category',
+            path: 'subcategories',
             element: withSuspense(SubCategory),
           },
           {

@@ -57,7 +57,7 @@ export const sidelinks = [
       {
         title: 'Sub-Category',
         label: '',
-        href: '/sub-category',
+        href: '/subcategories',
         icon: <IconHexagonNumber2 size={18} />,
       },
     ],
