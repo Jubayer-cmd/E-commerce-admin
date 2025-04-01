@@ -22,6 +22,7 @@ const Blogs = lazy(() => import('@/pages/blogs/blogs'))
 const SettingsNotifications = lazy(
   () => import('@/pages/settings/notifications')
 )
+const Promotion = lazy(() => import('@/pages/promotion/promotion'))
 const Brands = lazy(() => import('@/pages/brands/Brands'))
 const Banners = lazy(() => import('@/pages/banners/Banners'))
 const SubCategory = lazy(
@@ -73,6 +74,10 @@ const routes = createBrowserRouter([
           {
             path: 'subcategories',
             element: withSuspense(SubCategory),
+          },
+          {
+            path: 'promotion',
+            element: withSuspense(Promotion),
           },
           {
             path: 'banners',

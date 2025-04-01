@@ -7,7 +7,6 @@ import {
   getSortedRowModel,
   useReactTable,
 } from '@tanstack/react-table'
-
 import {
   Table,
   TableBody,
@@ -16,10 +15,8 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table'
-
 import { TablePagination } from './TablePagination'
 import { TableToolbar } from './TableToolbar'
-
 import usePostData from '@/hooks/apis/useMutationData'
 import { useTableColumns } from './hooks/useTableColumns'
 import { ViewDetailsModal } from './modals/ViewDetailsModal'
@@ -174,17 +171,14 @@ export function ReusableTable({
     id: id,
     header: id.charAt(0).toUpperCase() + id.slice(1),
     enableHiding: false,
-    size: 0, // Make the column as small as possible
+    size: 0,
     minSize: 0,
   }))
 
-  // Correctly combine all columns
   const allColumns = [...columns, ...filterOnlyAccessors]
 
-  // Prepare table with boolean filter handling
   const table = useReactTable({
     data,
-    // Important: use allColumns instead of just columns
     columns: allColumns,
     state: {
       sorting,

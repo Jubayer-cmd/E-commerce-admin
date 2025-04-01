@@ -41,6 +41,11 @@ export function useTableColumns({
         header = 'Status'
       }
 
+      // Display "Usage Count" for _count field
+      if (key === '_count') {
+        header = 'Usage Count'
+      }
+
       // Check if this is an image column
       const imageColumn = imageColumns.find((col) => col.id === key)
 
@@ -98,10 +103,25 @@ export function useTableColumns({
             )
           }
 
-          // Default rendering for other columns
-          return (
-            <div className='max-w-[200px] truncate'>{row.getValue(key)}</div>
-          )
+          // Handle object values (like _count)
+          const value = row.getValue(key)
+          if (typeof value === 'object' && value !== null) {
+            // Handle _count object specifically
+            if (key === '_count' && 'usages' in value) {
+              return (
+                <div className='max-w-[200px] truncate'>{value.usages}</div>
+              )
+            }
+            // For other objects, try to display them sensibly
+            return (
+              <div className='max-w-[200px] truncate'>
+                {JSON.stringify(value)}
+              </div>
+            )
+          }
+
+          // Default rendering for primitive values
+          return <div className='max-w-[200px] truncate'>{value}</div>
         },
       }
 

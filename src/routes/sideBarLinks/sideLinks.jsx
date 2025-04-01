@@ -69,6 +69,12 @@ export const sidelinks = [
     ],
   },
   {
+    title: 'Promotion',
+    label: '',
+    href: '/promotion',
+    icon: <IconHexagonNumber4 size={18} />,
+  },
+  {
     title: 'Users',
     label: '',
     href: '/users',
