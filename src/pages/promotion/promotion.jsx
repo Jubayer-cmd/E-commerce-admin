@@ -50,6 +50,7 @@ export default function Promotion() {
               deleteEndpoint='/promotions'
               archiveEndpoint='/promotions'
               refetch={refetch}
+              dateColumns={['startDate', 'endDate', 'createdAt', 'updatedAt']}
               searchableColumns={[
                 { id: 'name', title: 'Promotion Name' },
                 { id: 'code', title: 'Code' },
@@ -97,8 +98,6 @@ export default function Promotion() {
                 // '_count', // Add _count to excluded columns
               ]}
               formatColumnValue={{
-                startDate: (value) => new Date(value).toLocaleDateString(),
-                endDate: (value) => new Date(value).toLocaleDateString(),
                 discount: (value, row) =>
                   row.discountType === 'percentage' ? `${value}%` : `$${value}`,
               }}

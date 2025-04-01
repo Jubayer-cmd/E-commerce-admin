@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import React, { useState, useEffect } from 'react'
 import {
   flexRender,
   getCoreRowModel,
@@ -23,6 +23,31 @@ import { ViewDetailsModal } from './modals/ViewDetailsModal'
 import { DeleteModal } from './modals/DeleteModal'
 import { ArchiveModal } from './modals/ArchiveModal'
 import { toast } from 'sonner'
+// Import date-fns
+import { format, isValid, parseISO } from 'date-fns'
+
+// Date formatting helper function using date-fns
+const formatDate = (dateString) => {
+  if (!dateString) return ''
+
+  try {
+    // Try to parse as ISO date string first
+    const date = parseISO(dateString)
+
+    // Check if date is valid
+    if (!isValid(date)) {
+      // Try as regular date string
+      const fallbackDate = new Date(dateString)
+      if (!isValid(fallbackDate)) return dateString
+      return format(fallbackDate, 'd MMM yyyy')
+    }
+
+    return format(date, 'd MMM yyyy')
+  } catch (error) {
+    console.error('Error formatting date:', error)
+    return dateString
+  }
+}
 
 export function ReusableTable({
   data,
@@ -37,6 +62,8 @@ export function ReusableTable({
   pageSize = 10,
   imageColumns = [],
   columnFormatters = {},
+  formatColumnValue = {},
+  dateColumns = ['startDate', 'endDate', 'createdAt', 'updatedAt', 'date'], // Default date columns
 }) {
   const [rowSelection, setRowSelection] = useState({})
   const [columnVisibility, setColumnVisibility] = useState({})
@@ -134,6 +161,34 @@ export function ReusableTable({
     .map((col) => col.id)
     .filter((id) => excludeColumns.includes(id))
 
+  // Merge custom formatters with date formatters
+  const mergedFormatters = { ...formatColumnValue }
+
+  // Apply date formatting to specified date columns if they don't already have custom formatters
+  dateColumns.forEach((column) => {
+    if (!mergedFormatters[column]) {
+      mergedFormatters[column] = formatDate
+    }
+  })
+
+  // Process data to format dates before passing to the table
+  const processedData = React.useMemo(() => {
+    if (!data || data.length === 0) return data
+
+    return data.map((item) => {
+      const newItem = { ...item }
+
+      // Apply date formatting to specified date columns
+      dateColumns.forEach((column) => {
+        if (newItem[column]) {
+          newItem[column] = formatDate(newItem[column])
+        }
+      })
+
+      return newItem
+    })
+  }, [data, dateColumns])
+
   // Generate columns using the dedicated hook
   const columns = useTableColumns({
     data,
@@ -146,6 +201,8 @@ export function ReusableTable({
     deleteEndpoint,
     archiveEndpoint,
     columnFormatters,
+    formatColumnValue: mergedFormatters, // Pass merged formatters
+    dateColumns, // Pass dateColumns to useTableColumns
   })
 
   // Create visibility state with excluded columns hidden
@@ -177,8 +234,9 @@ export function ReusableTable({
 
   const allColumns = [...columns, ...filterOnlyAccessors]
 
+  // Use processedData instead of original data in the useReactTable call
   const table = useReactTable({
-    data,
+    data: processedData,
     columns: allColumns,
     state: {
       sorting,

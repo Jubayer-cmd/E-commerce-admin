@@ -12,6 +12,8 @@ export function useTableColumns({
   deleteEndpoint,
   archiveEndpoint,
   columnFormatters = {},
+  formatColumnValue = {},
+  dateColumns = ['startDate', 'endDate', 'createdAt', 'updatedAt', 'date'], // Add dateColumns parameter
 }) {
   return useMemo(() => {
     if (!data || data.length === 0) return []
@@ -20,6 +22,9 @@ export function useTableColumns({
 
     // Create a Set from excludeColumns for faster lookups
     const excludeColumnsSet = new Set(excludeColumns)
+
+    // Create a Set from dateColumns for faster lookups
+    const dateColumnsSet = new Set(dateColumns)
 
     // Get all possible column keys (excluding those in excludeColumns)
     const columnKeys = Object.keys(firstRow).filter(
@@ -54,9 +59,19 @@ export function useTableColumns({
         accessorKey: key,
         header,
         cell: ({ row }) => {
+          const value = row.getValue(key)
+
           // Check if there's a custom formatter for this column
-          if (columnFormatters && columnFormatters[key]) {
-            return columnFormatters[key](row.getValue(key), row)
+          if (formatColumnValue[key]) {
+            // For date columns, apply nowrap styling
+            if (dateColumnsSet.has(key)) {
+              return (
+                <div className='whitespace-nowrap'>
+                  {formatColumnValue[key](value, row.original)}
+                </div>
+              )
+            }
+            return formatColumnValue[key](value, row.original)
           }
 
           // Special handling for isActive column to show status badges
@@ -104,7 +119,6 @@ export function useTableColumns({
           }
 
           // Handle object values (like _count)
-          const value = row.getValue(key)
           if (typeof value === 'object' && value !== null) {
             // Handle _count object specifically
             if (key === '_count' && 'usages' in value) {
@@ -118,6 +132,11 @@ export function useTableColumns({
                 {JSON.stringify(value)}
               </div>
             )
+          }
+
+          // Apply nowrap styling to date columns
+          if (dateColumnsSet.has(key)) {
+            return <div className='whitespace-nowrap'>{value}</div>
           }
 
           // Default rendering for primitive values
@@ -174,5 +193,7 @@ export function useTableColumns({
     archiveEndpoint,
     imageColumns,
     columnFormatters,
+    formatColumnValue,
+    dateColumns, // Add dateColumns to dependency array
   ])
 }
