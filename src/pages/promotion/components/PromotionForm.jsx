@@ -163,7 +163,7 @@ export default function PromotionForm({ onCancel, refetch, promotion }) {
     const currentConditions = form.getValues('conditions') || []
     form.setValue('conditions', [
       ...currentConditions,
-      { conditionType: '', value: '', jsonValue: undefined },
+      { conditionType: '', value: '', jsonValue: null },
     ])
   }
 
@@ -193,9 +193,42 @@ export default function PromotionForm({ onCancel, refetch, promotion }) {
       isActive,
       productIds,
       categoryIds,
-      conditions,
       image,
     } = values
+
+    // Process conditions to handle different types correctly
+    const processedConditions =
+      values.conditions?.map((condition) => {
+        const { conditionType, value } = condition
+        let jsonValue = null
+
+        // Handle complex condition types that require JSON data
+        if (
+          conditionType === 'product_combination' ||
+          conditionType === 'location_based'
+        ) {
+          // Try to parse value as JSON if it's a complex condition type
+          try {
+            if (typeof value === 'string' && value.startsWith('{')) {
+              jsonValue = JSON.parse(value)
+            }
+          } catch (e) {
+            console.error('Failed to parse JSON value for condition', e)
+          }
+        }
+
+        // Handle numeric values
+        let processedValue = value
+        if (['min_purchase_amount', 'min_quantity'].includes(conditionType)) {
+          processedValue = value.toString()
+        }
+
+        return {
+          conditionType,
+          value: processedValue,
+          jsonValue,
+        }
+      }) || []
 
     // Format API payload
     const apiPayload = {
@@ -215,12 +248,7 @@ export default function PromotionForm({ onCancel, refetch, promotion }) {
       isActive,
       productIds: productIds || [], // Ensure arrays are always provided
       categoryIds: categoryIds || [],
-      conditions:
-        conditions?.map((condition) => ({
-          conditionType: condition.conditionType,
-          value: condition.value,
-          jsonValue: condition.jsonValue || null,
-        })) || [],
+      conditions: processedConditions,
     }
 
     // Create FormData for image upload and other fields

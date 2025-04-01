@@ -16,6 +16,9 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
+import { Switch } from '@/components/ui/switch'
+import { MultiSelect } from '@/components/ui/multi-select'
+import { useEffect } from 'react'
 
 export default function ConditionsSection({
   form,
@@ -23,6 +26,122 @@ export default function ConditionsSection({
   removeCondition,
 }) {
   const conditions = form.watch('conditions') || []
+
+  // Get payment methods and user groups from a data source
+  const paymentMethods = [
+    { value: 'credit_card', label: 'Credit Card' },
+    { value: 'paypal', label: 'PayPal' },
+    { value: 'stripe', label: 'Stripe' },
+    { value: 'bank_transfer', label: 'Bank Transfer' },
+    { value: 'cash_on_delivery', label: 'Cash on Delivery' },
+  ]
+
+  const userGroups = [
+    { value: 'new_customer', label: 'New Customers' },
+    { value: 'returning_customer', label: 'Returning Customers' },
+    { value: 'vip', label: 'VIP Members' },
+    { value: 'wholesale', label: 'Wholesale Buyers' },
+  ]
+
+  // Update the value field when condition type changes
+  useEffect(() => {
+    conditions.forEach((condition, index) => {
+      const currentType = form.watch(`conditions.${index}.conditionType`)
+      const currentValue = form.watch(`conditions.${index}.value`)
+
+      // Reset value when type changes
+      if (currentType && currentValue === '') {
+        if (['first_time_purchase', 'free_shipping'].includes(currentType)) {
+          form.setValue(`conditions.${index}.value`, 'true')
+        }
+      }
+    })
+  }, [conditions, form])
+
+  // Render appropriate input based on condition type
+  const renderValueInput = (index, type) => {
+    switch (type) {
+      case 'min_purchase_amount':
+      case 'min_quantity':
+        return (
+          <Input
+            type='number'
+            min='0'
+            step={type === 'min_purchase_amount' ? '0.01' : '1'}
+            placeholder={type === 'min_purchase_amount' ? '100.00' : '5'}
+            {...form.register(`conditions.${index}.value`)}
+          />
+        )
+
+      case 'first_time_purchase':
+      case 'free_shipping':
+        return (
+          <Switch
+            checked={form.watch(`conditions.${index}.value`) === 'true'}
+            onCheckedChange={(checked) =>
+              form.setValue(
+                `conditions.${index}.value`,
+                checked ? 'true' : 'false'
+              )
+            }
+          />
+        )
+
+      case 'payment_method':
+        return (
+          <Select
+            onValueChange={(value) =>
+              form.setValue(`conditions.${index}.value`, value)
+            }
+            defaultValue={form.watch(`conditions.${index}.value`)}
+          >
+            <FormControl>
+              <SelectTrigger>
+                <SelectValue placeholder='Select payment method' />
+              </SelectTrigger>
+            </FormControl>
+            <SelectContent>
+              {paymentMethods.map((method) => (
+                <SelectItem key={method.value} value={method.value}>
+                  {method.label}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        )
+
+      case 'user_group':
+        return (
+          <Select
+            onValueChange={(value) =>
+              form.setValue(`conditions.${index}.value`, value)
+            }
+            defaultValue={form.watch(`conditions.${index}.value`)}
+          >
+            <FormControl>
+              <SelectTrigger>
+                <SelectValue placeholder='Select user group' />
+              </SelectTrigger>
+            </FormControl>
+            <SelectContent>
+              {userGroups.map((group) => (
+                <SelectItem key={group.value} value={group.value}>
+                  {group.label}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        )
+
+      default:
+        return (
+          <Input
+            placeholder='Condition value'
+            {...form.register(`conditions.${index}.value`)}
+          />
+        )
+    }
+  }
 
   return (
     <div className='space-y-4'>
@@ -75,25 +194,22 @@ export default function ConditionsSection({
                           </SelectTrigger>
                         </FormControl>
                         <SelectContent>
-                          <SelectItem value='min_purchase'>
-                            Minimum Purchase
-                          </SelectItem>
                           <SelectItem value='first_time_purchase'>
                             First Time Purchase
                           </SelectItem>
-                          <SelectItem value='min_quantity'>
-                            Minimum Quantity
-                          </SelectItem>
-                          <SelectItem value='user_group'>User Group</SelectItem>
-                          <SelectItem value='payment_method'>
-                            Payment Method
+                          <SelectItem value='specific_products'>
+                            Specific Products
                           </SelectItem>
                           <SelectItem value='specific_categories'>
                             Specific Categories
                           </SelectItem>
-                          <SelectItem value='minimum_purchase_amount'>
-                            Minimum Purchase Amount
+                          <SelectItem value='min_quantity'>
+                            Minimum Quantity
                           </SelectItem>
+                          <SelectItem value='total_items'>
+                            Total Items
+                          </SelectItem>
+                          <SelectItem value='user_role'>User Role</SelectItem>
                         </SelectContent>
                       </Select>
                       <FormMessage />
@@ -108,8 +224,18 @@ export default function ConditionsSection({
                     <FormItem>
                       <FormLabel className='text-xs'>Value</FormLabel>
                       <FormControl>
-                        <Input placeholder='Condition value' {...field} />
+                        {renderValueInput(
+                          index,
+                          form.watch(`conditions.${index}.conditionType`)
+                        )}
                       </FormControl>
+                      <FormDescription>
+                        {form.watch(`conditions.${index}.conditionType`) ===
+                          'min_purchase_amount' &&
+                          'Minimum purchase amount in dollars'}
+                        {form.watch(`conditions.${index}.conditionType`) ===
+                          'min_quantity' && 'Minimum quantity of products'}
+                      </FormDescription>
                       <FormMessage />
                     </FormItem>
                   )}
