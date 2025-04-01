@@ -31,6 +31,7 @@ const Category = lazy(() => import('@/pages/categories/category/Category'))
 
 const SettingsDisplay = lazy(() => import('@/pages/settings/display'))
 
+const supportTicket = lazy(() => import('@/pages/support-ticket/SupporTicket'))
 const withSuspense = (Component) => (
   <Suspense fallback={<Loading />}>
     <Component />
@@ -84,6 +85,10 @@ const routes = createBrowserRouter([
           {
             path: 'blogs',
             element: withSuspense(Blogs),
+          },
+          {
+            path: 'support-ticket',
+            element: withSuspense(supportTicket),
           },
           {
             path: 'settings',

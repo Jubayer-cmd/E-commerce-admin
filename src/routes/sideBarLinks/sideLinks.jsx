@@ -7,7 +7,7 @@ import {
   IconHexagonNumber2,
   IconHexagonNumber3,
   IconHexagonNumber4,
-  IconHexagonNumber5,
+  // IconHexagonNumber5,
   IconLayoutDashboard,
   IconServerOff,
   IconSettings,
@@ -73,6 +73,12 @@ export const sidelinks = [
     label: '',
     href: '/users',
     icon: <IconUsers size={18} />,
+  },
+  {
+    title: 'Support Ticket',
+    label: '',
+    href: '/support-ticket',
+    icon: <IconHexagonNumber4 size={18} />,
   },
   {
     title: 'Analysis',
