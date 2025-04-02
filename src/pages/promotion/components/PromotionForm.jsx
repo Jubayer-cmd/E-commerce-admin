@@ -199,13 +199,13 @@ export default function PromotionForm({ onCancel, refetch, promotion }) {
     // Process conditions to handle different types correctly
     const processedConditions =
       values.conditions?.map((condition) => {
-        const { conditionType, value } = condition
+        const { conditionType, value, isActive = true } = condition
         let jsonValue = null
 
         // Handle complex condition types that require JSON data
         if (
-          conditionType === 'product_combination' ||
-          conditionType === 'location_based'
+          conditionType === 'specific_products' ||
+          conditionType === 'specific_categories'
         ) {
           // Try to parse value as JSON if it's a complex condition type
           try {
@@ -217,16 +217,11 @@ export default function PromotionForm({ onCancel, refetch, promotion }) {
           }
         }
 
-        // Handle numeric values
-        let processedValue = value
-        if (['min_purchase_amount', 'min_quantity'].includes(conditionType)) {
-          processedValue = value.toString()
-        }
-
         return {
           conditionType,
-          value: processedValue,
+          value: value.toString(),
           jsonValue,
+          isActive,
         }
       }) || []
 
@@ -236,17 +231,17 @@ export default function PromotionForm({ onCancel, refetch, promotion }) {
       code,
       description: description || '',
       type,
-      discount: discount.toString(), // API expects string
+      discount: parseFloat(discount), // Ensure it's a number
       discountType,
-      maxDiscount: maxDiscount !== null ? maxDiscount.toString() : null, // API expects string or null
-      minPurchase: minPurchase !== null ? minPurchase.toString() : null, // API expects string or null
+      maxDiscount: maxDiscount !== null ? parseFloat(maxDiscount) : null,
+      minPurchase: minPurchase !== null ? parseFloat(minPurchase) : null,
       startDate: startDate.toISOString(),
       endDate: endDate.toISOString(),
-      usageLimit: usageLimit !== null ? usageLimit.toString() : null, // API expects string or null
+      usageLimit: usageLimit !== null ? parseInt(usageLimit) : null,
       usageLimitPerUser:
-        usageLimitPerUser !== null ? usageLimitPerUser.toString() : null, // API expects string or null
+        usageLimitPerUser !== null ? parseInt(usageLimitPerUser) : null,
       isActive,
-      productIds: productIds || [], // Ensure arrays are always provided
+      productIds: productIds || [],
       categoryIds: categoryIds || [],
       conditions: processedConditions,
     }

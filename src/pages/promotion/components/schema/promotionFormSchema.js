@@ -1,6 +1,6 @@
 import * as z from 'zod'
 
-// Define promotion type and discount type values based on your Prisma schema
+// Define promotion type and discount type values based on Prisma schema
 const PromotionType = {
   discount: 'discount',
   flash_sale: 'flash_sale',
@@ -15,19 +15,25 @@ const DiscountType = {
   fixed_amount: 'fixed_amount',
 }
 
+// Update condition types to match Prisma schema
 const ConditionType = {
-  min_purchase: 'min_purchase',
   first_time_purchase: 'first_time_purchase',
-  min_quantity: 'min_quantity',
-  user_group: 'user_group',
-  payment_method: 'payment_method',
+  specific_products: 'specific_products',
+  specific_categories: 'specific_categories',
+  quantity_threshold: 'quantity_threshold',
+  minimum_purchase_amount: 'minimum_purchase_amount',
+  total_items: 'total_items',
+  user_role: 'user_role',
+  time_of_day: 'time_of_day',
+  day_of_week: 'day_of_week',
 }
 
 // Validation schema for the condition object
 const conditionSchema = z.object({
   conditionType: z.string().min(1, { message: 'Condition type is required' }),
   value: z.string().min(1, { message: 'Condition value is required' }),
-  jsonValue: z.any().nullable().optional(), // Add support for jsonValue field that can be null
+  jsonValue: z.any().nullable().optional(), // Support for JSON value
+  isActive: z.boolean().optional().default(true), // Added to match schema
 })
 
 // Main promotion form schema
@@ -108,6 +114,9 @@ export const promotionFormSchema = z
       })
     }
   })
+
+// Export the condition types for use in the form
+export { PromotionType, DiscountType, ConditionType }
 
 // Default values for the form
 export const defaultValues = {

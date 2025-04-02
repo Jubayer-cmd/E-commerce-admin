@@ -47,8 +47,8 @@ export default function Promotion() {
             <ReusableTable
               data={promotions.data || []}
               onEdit={(promotion) => toggleModal(true, promotion)}
-              deleteEndpoint='/promotions'
-              archiveEndpoint='/promotions'
+              deleteEndpoint='/promotion'
+              archiveEndpoint='/promotion'
               refetch={refetch}
               dateColumns={['startDate', 'endDate', 'createdAt', 'updatedAt']}
               searchableColumns={[
