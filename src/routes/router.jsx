@@ -29,7 +29,7 @@ const SubCategory = lazy(
   () => import('@/pages/categories/sub-category/Subcategory')
 )
 const Category = lazy(() => import('@/pages/categories/category/Category'))
-
+const Product = lazy(() => import('@/pages/product/product'))
 const SettingsDisplay = lazy(() => import('@/pages/settings/display'))
 
 const supportTicket = lazy(() => import('@/pages/support-ticket/SupporTicket'))
@@ -74,6 +74,10 @@ const routes = createBrowserRouter([
           {
             path: 'subcategories',
             element: withSuspense(SubCategory),
+          },
+          {
+            path: 'products',
+            element: withSuspense(Product),
           },
           {
             path: 'promotion',

@@ -43,7 +43,13 @@ export const sidelinks = [
     icon: <IconChecklist size={18} />,
   },
   {
-    title: 'Product',
+    title: 'product',
+    label: '',
+    href: '/products',
+    icon: <IconChecklist size={18} />,
+  },
+  {
+    title: 'Categories',
     label: '',
     href: '',
     icon: <IconUserShield size={18} />,

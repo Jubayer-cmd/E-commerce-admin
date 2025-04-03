@@ -7,6 +7,7 @@ import {
   DialogFooter,
 } from '@/components/ui/dialog'
 import { cn } from '@/lib/utils'
+import React from 'react'
 
 export default function Modal({
   isOpen,
@@ -16,9 +17,19 @@ export default function Modal({
   children,
   className,
   footer,
-  size = 'default', // Add size prop with default value
+  size = 'default',
   ...props
 }) {
+  // Handle the open state change safely with useCallback to prevent infinite loops
+  const handleOpenChange = React.useCallback(
+    (open) => {
+      if (!open) {
+        onClose()
+      }
+    },
+    [onClose]
+  )
+
   // Determine width class based on size
   const sizeClasses = {
     default: 'max-w-lg',
@@ -27,7 +38,7 @@ export default function Modal({
   }
 
   return (
-    <Dialog open={isOpen} onOpenChange={onClose} {...props}>
+    <Dialog open={isOpen} onOpenChange={handleOpenChange} {...props}>
       <DialogContent
         className={cn(
           sizeClasses[size] || sizeClasses.default,
