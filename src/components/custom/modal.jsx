@@ -7,7 +7,7 @@ import {
   DialogFooter,
 } from '@/components/ui/dialog'
 import { cn } from '@/lib/utils'
-import React from 'react'
+import { useEffect, useState } from 'react'
 
 export default function Modal({
   isOpen,
@@ -20,15 +20,21 @@ export default function Modal({
   size = 'default',
   ...props
 }) {
-  // Handle the open state change safely with useCallback to prevent infinite loops
-  const handleOpenChange = React.useCallback(
-    (open) => {
-      if (!open) {
-        onClose()
-      }
-    },
-    [onClose]
-  )
+  // Add internal state to prevent recursive updates
+  const [internalOpen, setInternalOpen] = useState(false)
+
+  // Sync the internal state with the isOpen prop
+  useEffect(() => {
+    setInternalOpen(isOpen)
+  }, [isOpen])
+
+  // Handle the open state change safely
+  const handleOpenChange = (open) => {
+    // Only call onClose when closing
+    if (!open) {
+      onClose()
+    }
+  }
 
   // Determine width class based on size
   const sizeClasses = {
@@ -38,7 +44,7 @@ export default function Modal({
   }
 
   return (
-    <Dialog open={isOpen} onOpenChange={handleOpenChange} {...props}>
+    <Dialog open={internalOpen} onOpenChange={handleOpenChange} {...props}>
       <DialogContent
         className={cn(
           sizeClasses[size] || sizeClasses.default,
